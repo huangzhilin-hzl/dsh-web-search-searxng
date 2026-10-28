@@ -1,0 +1,20 @@
+# Minimal SearXNG instance for dsh-web-search-searxng.
+# Copy this directory somewhere writable, set a secret_key in settings.yml
+# (see the placeholder there), then: docker compose up -d
+services:
+  searxng:
+    image: docker.io/searxng/searxng:latest
+    container_name: searxng
+    restart: unless-stopped
+    ports:
+      # Loopback only: the provider runs on the same host.
+      - "127.0.0.1:8888:8080"
+    volumes:
+      - ./settings.yml:/etc/searxng/settings.yml:ro
+    environment:
+      SEARXNG_BASE_URL: http://127.0.0.1:8888/
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "2"

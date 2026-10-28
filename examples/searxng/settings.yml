@@ -1,0 +1,41 @@
+# Example settings.yml for the instance used by dsh-web-search-searxng.
+# Mount it at /etc/searxng/settings.yml (see docker-compose.yml).
+
+use_default_settings: true
+
+general:
+  instance_name: "searxng-local"
+
+search:
+  # Required by the provider: SearXNG serves only HTML unless JSON is enabled.
+  formats:
+    - html
+    - json
+  safe_search: 0
+  autocomplete: ""
+
+server:
+  # Replace with your own random value, e.g. `openssl rand -hex 32`.
+  secret_key: "CHANGE_ME_OPENSSL_RAND_HEX_32"
+  # This instance is for local tooling only, so bot detection is off and the
+  # API stays reachable without an X-Forwarded-For header.
+  limiter: false
+  public_instance: false
+  image_proxy: false
+
+outgoing:
+  request_timeout: 8.0
+  max_request_timeout: 15.0
+  # Uncomment if this host needs an outbound proxy. Inside a container the
+  # loopback address is the container itself — point at the gateway instead.
+  # proxies:
+  #   all://:
+  #     - http://host.docker.internal:7890
+
+# Engines that return nothing for your network can be disabled here; each
+# disabled engine only costs time. Check what actually works with:
+#   curl -sG http://127.0.0.1:8888/search \
+#     --data-urlencode 'q=test' --data 'format=json' | jq .unresponsive_engines
+# engines:
+#   - name: duckduckgo
+#     disabled: true
