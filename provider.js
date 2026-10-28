@@ -122,9 +122,18 @@ export class SearxngSearchProvider {
 
     const unresponsive = Array.isArray(payload?.unresponsive_engines) ? payload.unresponsive_engines : []
     if (sources.length === 0 && unresponsive.length > 0) {
+      // Rate limiting is the common case and it self-heals: SearXNG suspends a
+      // throttled engine for ~180s (CAPTCHA: longer). Say so instead of sending
+      // the caller to the logs for a condition that needs no fix.
+      const throttled = unresponsive.some(([, reason]) =>
+        /too many requests|suspend|rate.?limit/iu.test(String(reason)))
       throw new Error(
         `SearXNG returned no usable results; failing engines: ${JSON.stringify(unresponsive)}. `
-        + 'Check `docker logs --tail 40 searxng` and the engine whitelist in settings.yml.',
+        + (throttled
+          ? 'Upstream engines are rate-limited and recover automatically after about 3 minutes '
+            + '(CAPTCHA blocks last longer). Retry, or keep several independent engines enabled so '
+            + 'one throttled upstream cannot empty the result set.'
+          : 'Check `docker logs --tail 40 searxng` and the engine whitelist in settings.yml.'),
       )
     }
 

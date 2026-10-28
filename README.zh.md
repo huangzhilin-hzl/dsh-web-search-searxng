@@ -81,6 +81,32 @@ dsh plugin --profile web add link:/path/to/dsh-web-search-searxng
 第三条是刻意设计：SearXNG 对“没有匹配结果”和“所有引擎都失败”返回的是同样形状的
 `200` + 空结果，直接透传会让部署故障看起来像一次安静的空搜索。
 
+## 引擎选择与限流
+
+SearXNG 是元搜索前端：绝大多数引擎默认关闭，而哪些能用取决于你的网络。**只配两个引擎是不够的。**
+Brave 或 Google 一旦限流，SearXNG 会把该引擎挂起约 180 秒（CAPTCHA 挂得更久），此时如果没有
+存活引擎，结果就是空的。
+
+至少保留两个走不同上游的引擎，例如：
+
+```yaml
+engines:
+  - name: yandex
+    disabled: false
+  - name: 360search
+    disabled: false
+```
+
+别猜，直接测——下面这条会列出某次查询失败的引擎：
+
+```bash
+curl -sG http://127.0.0.1:8888/search \
+  --data-urlencode 'q=test' --data 'format=json' | jq .unresponsive_engines
+```
+
+provider 会把“限流”和“部署坏了”区分开：当结果为空且失败引擎提到限流时，报错会说明上游约三分钟
+后自动恢复——这种情况不需要修，等一会儿或补一个兜底引擎即可。
+
 ## 示例实例
 
 `examples/searxng/` 下有一份最小可用的 `docker-compose.yml` 与 `settings.yml`（已开启 JSON、

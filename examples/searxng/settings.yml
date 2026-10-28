@@ -33,9 +33,15 @@ outgoing:
   #     - http://host.docker.internal:7890
 
 # Engines that return nothing for your network can be disabled here; each
-# disabled engine only costs time. Check what actually works with:
+# disabled engine only costs time. Keep at least two engines on independent
+# upstreams enabled — a single throttled engine (SearXNG suspends it for ~180s)
+# otherwise leaves the search with no results at all. Check what actually works:
 #   curl -sG http://127.0.0.1:8888/search \
 #     --data-urlencode 'q=test' --data 'format=json' | jq .unresponsive_engines
 # engines:
 #   - name: duckduckgo
 #     disabled: true
+#   - name: yandex
+#     disabled: false
+#   - name: 360search
+#     disabled: false

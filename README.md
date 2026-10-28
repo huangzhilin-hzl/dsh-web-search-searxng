@@ -82,6 +82,34 @@ Then add two entries to that profile's `cordis.patch.yml`:
 The third row is deliberate. SearXNG reports "no matching results" and "every engine failed" with
 the same `200`/empty payload, so a passthrough makes a broken deployment look like a quiet miss.
 
+## Engine selection and rate limits
+
+SearXNG is a metasearch front end: most engines ship disabled, and which ones answer depends on
+your network. Two engines are not enough. When Brave or Google throttles you, SearXNG suspends that
+engine for about 180 seconds (CAPTCHA blocks last far longer), and with no surviving engine the
+search returns nothing at all.
+
+Keep at least two independent upstreams enabled, for example:
+
+```yaml
+engines:
+  - name: yandex
+    disabled: false
+  - name: 360search
+    disabled: false
+```
+
+Measure instead of guessing — this lists the engines that failed on one query:
+
+```bash
+curl -sG http://127.0.0.1:8888/search \
+  --data-urlencode 'q=test' --data 'format=json' | jq .unresponsive_engines
+```
+
+The provider reports throttling as such rather than as a deployment fault: when every result is
+empty and the failing engines mention rate limits, the error says the upstreams recover in about
+three minutes, because that condition needs no action beyond waiting (or adding a fallback engine).
+
 ## Example instance
 
 `examples/searxng/` contains a minimal `docker-compose.yml` and `settings.yml` (JSON enabled,
