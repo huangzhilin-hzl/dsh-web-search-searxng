@@ -107,8 +107,9 @@ curl -sG http://127.0.0.1:8888/search \
 ```
 
 The provider reports throttling as such rather than as a deployment fault: when every result is
-empty and the failing engines mention rate limits, the error says the upstreams recover in about
-three minutes, because that condition needs no action beyond waiting (or adding a fallback engine).
+empty and the failing engines mention rate limits, the error says SearXNG retries the engine after a
+~180s cooldown while the upstream quota can take considerably longer — so retrying immediately tends
+to fail again, and the useful responses are waiting or enabling a fallback engine.
 
 ## Example instance
 
